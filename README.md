@@ -2,7 +2,7 @@
 
 ## Overview
 
-DocuMind-AI is an AI-powered PDF Question Answering system that enables users to interact with PDF documents through natural language. Instead of manually reading lengthy reports, research papers, financial documents, or technical manuals, users can simply upload a PDF and ask questions about its contents.
+AskMyPDF is an AI-powered PDF Question Answering system that enables users to interact with PDF documents through natural language. Instead of manually reading lengthy reports, research papers, financial documents, or technical manuals, users can simply upload a PDF and ask questions about its contents.
 
 The project was built with the idea that anyone should be able to quickly understand and extract information from a document without spending hours reading through every page. The system analyzes the uploaded PDF, retrieves relevant information, and generates context-aware answers based on the document content.
 
