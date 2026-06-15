@@ -1,4 +1,4 @@
-# 📄 DocuMind-AI: Intelligent PDF Question Answering System
+# 📄 AskMyPDF: Intelligent PDF Question Answering System
 
 ## Overview
 
