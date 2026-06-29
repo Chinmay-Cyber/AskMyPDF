@@ -1,142 +1,162 @@
-# 📄 AskMyPDF: Intelligent PDF Question Answering System
+# 🤖 RAG Chatbot PDF
 
-## Overview
-
-AskMyPDF is an AI-powered PDF Question Answering system that enables users to interact with PDF documents through natural language. Instead of manually reading lengthy reports, research papers, financial documents, or technical manuals, users can simply upload a PDF and ask questions about its contents.
-
-The project was built with the idea that anyone should be able to quickly understand and extract information from a document without spending hours reading through every page. The system analyzes the uploaded PDF, retrieves relevant information, and generates context-aware answers based on the document content.
+A production-ready Retrieval-Augmented Generation (RAG) chatbot that lets you have a conversation with your PDF or text documents — right inside a Jupyter notebook. Upload a document, ask questions, and get accurate, cited answers powered by Groq's LLaMA model.
 
 ---
 
-## Problem Statement
+## ✨ Features
 
-Large PDF documents often contain valuable information, but finding specific answers can be time-consuming and inefficient.
-
-Whether it is:
-
-* Research papers
-* Financial reports
-* Technical documentation
-* Study materials
-* Business reports
-* Legal documents
-
-Users frequently need quick answers without manually searching through hundreds of pages.
-
-DocuMind-AI solves this problem by transforming static PDFs into interactive knowledge sources.
+- **Conversational Q&A** — multi-turn dialogue with memory of previous questions
+- **Source citations** — every answer references the exact file and page number it drew from
+- **Redundancy filtering** — contextual compression pipeline removes duplicate retrieved chunks before answering
+- **Security-first design** — filename sanitization, file size validation, extension allowlisting, and API key masking
+- **Interactive Jupyter UI** — fully widget-based interface; no web server required
+- **Reset & reload** — swap documents mid-session without restarting the kernel
 
 ---
 
-## Features
+## 🏗️ Architecture
 
-✅ Upload PDF documents
+```
+┌─────────────┐     ┌───────────────────┐     ┌──────────────────────┐
+│  RAGInterface│────▶│    RAGSystem       │────▶│  DocumentProcessor   │
+│  (ipywidgets)│     │  (Orchestrator)    │     │  PyPDF / TextLoader  │
+└─────────────┘     └───────────────────┘     │  RecursiveTextSplit  │
+                             │                 └──────────────────────┘
+                             │                 ┌──────────────────────┐
+                             ├────────────────▶│  VectorStoreManager  │
+                             │                 │  HuggingFace Embeds  │
+                             │                 │  FAISS + Compression │
+                             │                 └──────────────────────┘
+                             │                 ┌──────────────────────┐
+                             └────────────────▶│       RAGChain       │
+                                               │  Groq LLaMA 3.1      │
+                                               │  ConversationMemory  │
+                                               └──────────────────────┘
+```
 
-✅ Extract and process document text
+**Component breakdown:**
 
-✅ Ask questions in natural language
-
-✅ Retrieve contextually relevant information
-
-✅ Generate accurate document-based answers
-
-✅ Fast inference using GROQ LLM API
-
-✅ Interactive and user-friendly workflow
-
----
-
-## Technology Stack
-
-### AI & NLP
-
-* Large Language Models (LLMs)
-* Retrieval-Augmented Question Answering
-* Semantic Search
-* Prompt Engineering
-
-### Libraries & Frameworks
-
-* Python
-* LangChain
-* PyPDF
-* FAISS / Vector Search
-* GROQ API
-* Jupyter Notebook
-
-### Data Processing
-
-* PDF Text Extraction
-* Text Chunking
-* Embedding Generation
-* Context Retrieval
+- `RAGConfig` — frozen dataclass holding all tunable parameters (chunk size, model names, retrieval K, etc.)
+- `SecurityValidator` — sanitizes filenames, validates file size and extension, masks API keys in logs
+- `DocumentProcessor` — loads PDF/TXT files, enriches metadata (source file, page number, chunk index), splits into overlapping chunks
+- `VectorStoreManager` — generates embeddings with `sentence-transformers/all-MiniLM-L6-v2`, indexes with FAISS, applies a redundancy filter at retrieval time
+- `RAGChain` — wraps Groq's LLaMA 3.1 8B Instant with a custom prompt, conversation buffer memory, and a `ConversationalRetrievalChain`
+- `RAGSystem` — orchestrates all components, handles temporary file lifecycle with a context manager
+- `RAGInterface` — ipywidgets UI layer for the full notebook experience
 
 ---
 
-## Why GROQ?
+## 🚀 Quick Start
 
-This project uses the GROQ API as the primary inference engine.
+### 1. Clone the repository
 
-Reasons for choosing GROQ:
+```bash
+git clone https://github.com/your-username/rag-chatbot-pdf.git
+cd rag-chatbot-pdf
+```
 
-* Extremely fast response times
-* Efficient inference performance
-* Generous token limits
-* Cost-effective for experimentation
-* Excellent for building real-time AI applications
-* Simple integration with modern LLM workflows
+### 2. Install dependencies
 
-Compared to many alternatives, GROQ provides a lightweight and highly responsive experience, making it ideal for document question-answering applications.
+```bash
+pip install -r requirements.txt
+```
 
----
+### 3. Get a Groq API key
 
-## How It Works
+Sign up at [console.groq.com](https://console.groq.com) and create a free API key.
 
-### Step 1: Upload PDF
+### 4. Launch the notebook
 
-The user uploads a PDF document.
+```bash
+jupyter notebook rag_chatbot_pdf.ipynb
+```
 
-### Step 2: Extract Content
+Run all cells. The interactive UI will appear at the bottom of the notebook.
 
-Text is extracted from all pages of the document.
+### 5. Use the chatbot
 
-### Step 3: Document Processing
-
-The extracted content is divided into smaller chunks for efficient retrieval.
-
-### Step 4: Semantic Retrieval
-
-Relevant document sections are identified based on the user's query.
-
-### Step 5: LLM Response Generation
-
-The retrieved context is sent to the GROQ-powered language model, which generates an accurate answer grounded in the document content.
-
-### Step 6: User Interaction
-
-Users can continue asking follow-up questions and explore the document conversationally.
+1. Paste your **Groq API key** into the password field
+2. **Upload** a PDF or `.txt` file (up to 50 MB)
+3. Click **🚀 Build Pipeline** and wait for the success message
+4. Type your question and hit **➤ Ask** (or press Enter)
+5. Click **🔄 Reset** to start over with a new document
 
 ---
 
-## Example Questions
+## 📦 Requirements
 
-* What is the main objective of this document?
-* Summarize the PDF in simple terms.
-* What are the key findings?
-* Explain the methodology used.
-* What conclusions are presented?
-* List important dates mentioned in the document.
-* What recommendations are provided?
+| Package | Purpose |
+|---|---|
+| `langchain` | RAG chain, memory, retrieval |
+| `langchain-community` | Document loaders, FAISS, embeddings, transformers |
+| `langchain-groq` | Groq LLM integration |
+| `sentence-transformers` | `all-MiniLM-L6-v2` embedding model |
+| `faiss-cpu` | Vector similarity search |
+| `pypdf` | PDF parsing |
+| `ipywidgets` | Notebook UI |
+| `jupyter` | Notebook runtime |
+
+Install everything at once:
+
+```bash
+pip install langchain langchain-community langchain-groq sentence-transformers faiss-cpu pypdf ipywidgets jupyter
+```
 
 ---
 
-## Project Motivation
+## ⚙️ Configuration
 
-I built this project with a simple goal:
+All parameters live in the `RAGConfig` dataclass at the top of the notebook. Edit them before running to customise behaviour:
 
-People often have PDFs containing important information but do not have the time to read every page. I wanted to create a system where users could upload a document, ask questions naturally, and instantly receive meaningful answers from the content.
-
-The objective was to make document understanding faster, easier, and more interactive through the power of Large Language Models and intelligent information retrieval.
+| Parameter | Default | Description |
+|---|---|---|
+| `chunk_size` | `1000` | Characters per text chunk |
+| `chunk_overlap` | `150` | Overlap between adjacent chunks |
+| `embedding_model` | `all-MiniLM-L6-v2` | HuggingFace sentence embedding model |
+| `llm_model` | `llama-3.1-8b-instant` | Groq model identifier |
+| `temperature` | `0.2` | LLM creativity (lower = more factual) |
+| `top_k_retrieval` | `10` | Chunks fetched before compression |
+| `top_k_compression` | `5` | Chunks passed to the LLM after filtering |
+| `max_tokens` | `4096` | Maximum tokens in LLM response |
+| `max_file_size_mb` | `50` | Upload size limit |
 
 ---
 
+## 🔒 Security Notes
 
+- API keys are **never logged** in plaintext — only a masked version (`gsk_...1234`) appears in logs
+- Uploaded filenames are **sanitized** and given a short SHA-256 hash prefix to prevent path traversal and collision attacks
+- Files are written to a **temporary directory** and deleted automatically after processing, regardless of success or failure
+- Only `.pdf` and `.txt` extensions are accepted
+
+---
+
+## 📁 Project Structure
+
+```
+rag-chatbot-pdf/
+├── rag_chatbot_pdf.ipynb   # Main notebook (all code + UI)
+└── README.md
+```
+
+---
+
+## 🛠️ How It Works
+
+1. **Ingestion** — the uploaded file is validated, written to a temp path, and loaded page-by-page
+2. **Chunking** — text is split recursively on paragraph, sentence, and word boundaries with overlap to preserve context
+3. **Embedding** — each chunk is converted to a 384-dimension vector using MiniLM
+4. **Indexing** — vectors are stored in an in-memory FAISS index
+5. **Retrieval** — at query time the top-K most similar chunks are fetched, then a redundancy filter removes near-duplicates
+6. **Generation** — the compressed context plus conversation history is fed to LLaMA 3.1 via Groq's API, which returns an answer with inline source citations
+7. **Memory** — `ConversationBufferMemory` keeps the full dialogue history so follow-up questions are handled naturally
+
+---
+
+## 🙌 Acknowledgements
+
+- [LangChain](https://www.langchain.com/) for the RAG framework
+- [Groq](https://groq.com/) for fast LLaMA inference
+- [HuggingFace](https://huggingface.co/) for the `sentence-transformers` embedding models
+- [Meta AI](https://ai.meta.com/) for the LLaMA 3.1 model family
